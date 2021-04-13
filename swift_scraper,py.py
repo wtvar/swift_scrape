@@ -10,6 +10,7 @@ import time
 import os
 import shutil
 
+#new version with error
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
