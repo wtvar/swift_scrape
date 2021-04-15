@@ -12,6 +12,7 @@ import shutil
 
 from settings import TELEGRAM_TOKEN
 from settings import my_telegram_id
+from settings import index_url
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -28,7 +29,7 @@ datetime get date from Mon, 04 May
 DRIVER_PATH = "C:\\Users\\chris\\Desktop\\python\\chromedriver\\chromedriver.exe" #driver path for windows pc
 #DRIVER_PATH = '/usr/lib/chromium-browser/chromedriver'	#driver path for pi/linux
 
-index_url = "https://www.swiftqueue.co.uk/westsuffolk.php" #TODO: ask for link?
+
 date_to_check = '2021-04-22' #TODO: ask for date?
 
 #telegram login details
