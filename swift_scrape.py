@@ -9,6 +9,7 @@ import logging
 import time
 import os
 import shutil
+
 from settings import TELEGRAM_TOKEN
 from settings import my_telegram_id
 
@@ -38,7 +39,7 @@ date_to_check = '2021-04-22' #TODO: ask for date?
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='C:\\Users\\chris\\Desktop\\python\\swiftqueueswiftqueue.log',
+                    filename='C:\\Users\\chris\\Desktop\\python\\swiftqueue\\swiftqueueswiftqueue.log',
                     #filename="/home/pi/python/inplay/inplay.log",\
                     filemode='a')
 
@@ -77,9 +78,11 @@ driver = webdriver.Chrome(DRIVER_PATH)
 driver.get(index_url)
 
 #click on link for blood test site
+
 submit = driver.find_element_by_xpath('/html/body/div[2]/div[3]/div/div[1]/a').click()
 logging.info('pressed on link')
 #check if success?
+time.sleep(10)
 try:
 	#see if the settings button is showing. if so, then we have successfully logged in
 	logout_button = driver.find_element_by_xpath('/html/body/div[2]/div/div[3]/form/div[2]/div[1]/h3')
@@ -92,39 +95,61 @@ timings = []
 logging.info('empty list made')
 time.sleep(5) #TODO: do i need this?
 try:
-    list_of_times = driver.find_element_by_xpath('//*[@id="timescreen"]/div[1]/h3').text
-    logging.info('looking for dates on site')
+    list_of_times = driver.find_elements_by_class_name('date-title')
+    logging.info('found dates on site')
 except:
     logging.info('unable to find dates')
 
-print('##############################')
-print(f' date found is {list_of_times}')
-print('##############################')
-print(f'type is {type(list_of_times)}')
-print('##############################')
-print(f'text of date is {list_of_times}')
-print('##############################')
+#adding the times found to new list
+for time_found in list_of_times[:5]:
+    timings.append(time_found.text)
+    #print(f'adding {time_found.text} to list')
 
-list_of_times += ' 2021' #adding 2021 as the date doesnt have this
-dt_obj = datetime.datetime.strptime(list_of_times, '%a, %d %b %Y') #making into datetime object
+final_timings = []#FIXME: new list since i cant figure out how to replace in the list
+
+#for some reason empty dates are added, need to remove these
+for dates_found in timings:
+    if dates_found == "":
+        timings.remove(dates_found)
+        #print('removed empty char')
+    else:
+        final_timings.append(datetime.datetime.strptime(dates_found + ' 2021', '%a, %d %b %Y')) #making str into datetime object
+
+#print(f'final list is {final_timings}')
+#print(type(final_timings[0]))
+
+#the below is added in previous loop now
+#list_of_times += ' 2021' #adding 2021 as the date doesnt have this automatically
+
+#the below is included in loop now
+#dt_obj = datetime.datetime.strptime(list_of_times, '%a, %d %b %Y') #making str into datetime object
+
 date_proper_format = datetime.datetime.strptime(date_to_check, '%Y-%m-%d')
 
-print(f'current time found is {dt_obj}')
-print(f'time to compare to is {date_proper_format}')
-current_page = driver.current_url
+#print(f'current time found is {dt_obj}')
+logging.info('time to compare to is {date_proper_format}')
+current_page = driver.current_url #get current page to later send the link via telegram
 
-if dt_obj < date_proper_format:
-	print('date is good')
-	try:
-        telegram_send(f'appointment is available on {dt_obj} \n {current_page}')
-        logging.info('telegram message sent')
-    except:
-        logging.info('unable to send telegram message')
-else:
-	print('date is bad')
-	
+#compare date and send telegram message if before our date
+message_to_send = "Appointments available on: "
+for time in final_timings:
+    if time < date_proper_format:
+        #print('date is good')
+        message_to_send += str(time) + ", "
+        
+    else:
+        print('date is bad')
 
-	
+print(message_to_send)
+
+#close browser window
+driver.close()
+
+"""try:
+            #telegram_send(f'appointment is available on {time} \n {current_page}')
+            #logging.info('telegram message sent')
+        except:
+            logging.info('unable to send telegram message')"""	
 """ pseudo code
 
 go to link [x]
